@@ -1,5 +1,5 @@
 use rand::{thread_rng, Rng};
-use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen::{closure::Closure, JsCast, JsValue};
 
 pub fn main() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
@@ -19,6 +19,11 @@ pub fn main() -> Result<(), JsValue> {
         .unwrap();
 
     let image = web_sys::HtmlImageElement::new().unwrap();
+    let callback = Closure::once(|| {
+        web_sys::console::log_1(&JsValue::from_str("loaded"));
+    });
+    image.set_onload(Some(callback.as_ref().unchecked_ref()));
+    callback.forget();
     image.set_src("/static/Idle (1).png");
     context.draw_image_with_html_image_element(&image, 0.0, 0.0);
     sierpinski(
