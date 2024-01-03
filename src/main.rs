@@ -20,6 +20,7 @@ pub fn main() -> Result<(), JsValue> {
 
     let image = web_sys::HtmlImageElement::new().unwrap();
     image.set_src("/static/Idle (1).png");
+    context.draw_image_with_html_image_element(&image, 0.0, 0.0);
     sierpinski(
         &context,
         [(300.0, 0.0), (0.0, 600.0), (600.0, 600.0)],
