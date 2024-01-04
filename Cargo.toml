@@ -23,6 +23,7 @@ features = [
   "Element",
   "HtmlCanvasElement",
   "HtmlImageElement",
+  "Performance",
   "Response",
   "Window",
 ]
