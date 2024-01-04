@@ -112,6 +112,7 @@ mod red_hat_boy_states {
     use crate::engine::Point;
 
     const FLOOR: i16 = 475;
+    const RUNNING_SPEED: i16 = 3;
     const IDLE_FRAMES: u8 = 29;
     const RUNNING_FRAMES: u8 = 23;
     const IDLE_FRAME_NAME: &str = "Idle";
@@ -158,7 +159,7 @@ mod red_hat_boy_states {
 
         pub fn run(self) -> RedHatBoyState<Running> {
             RedHatBoyState {
-                context: self.context.reset_frame(),
+                context: self.context.reset_frame().run_right(),
                 _state: Running,
             }
         }
@@ -198,6 +199,11 @@ mod red_hat_boy_states {
 
         fn reset_frame(mut self) -> Self {
             self.frame = 0;
+            self
+        }
+
+        fn run_right(mut self) -> Self {
+            self.velocity.x += RUNNING_SPEED;
             self
         }
     }
