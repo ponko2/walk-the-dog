@@ -1,6 +1,6 @@
 use crate::{
     browser,
-    engine::{self, Game, Rect, Renderer, Sheet},
+    engine::{self, Game, KeyState, Rect, Renderer, Sheet},
 };
 use anyhow::Result;
 use async_trait::async_trait;
@@ -38,7 +38,7 @@ impl Game for WalkTheDog {
         }))
     }
 
-    fn update(&mut self) {
+    fn update(&mut self, keystate: &KeyState) {
         if self.frame < 23 {
             self.frame += 1;
         } else {
