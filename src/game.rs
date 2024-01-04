@@ -66,6 +66,9 @@ pub enum Event {
     Run,
 }
 
+const IDLE_FRAMES: u8 = 29;
+const RUNNING_FRAMES: u8 = 23;
+
 impl RedHatBoyStateMachine {
     fn transition(self, event: Event) -> Self {
         match (self, event) {
@@ -91,19 +94,11 @@ impl RedHatBoyStateMachine {
     fn update(self) -> Self {
         match self {
             RedHatBoyStateMachine::Idle(mut state) => {
-                if state.context.frame < 29 {
-                    state.context.frame += 1;
-                } else {
-                    state.context.frame = 0;
-                }
+                state.context = state.context.update(IDLE_FRAMES);
                 RedHatBoyStateMachine::Idle(state)
             }
             RedHatBoyStateMachine::Running(mut state) => {
-                if state.context.frame < 23 {
-                    state.context.frame += 1;
-                } else {
-                    state.context.frame = 0;
-                }
+                state.context = state.context.update(RUNNING_FRAMES);
                 RedHatBoyStateMachine::Running(state)
             }
         }
@@ -176,6 +171,17 @@ mod red_hat_boy_states {
         pub frame: u8,
         pub position: Point,
         velocity: Point,
+    }
+
+    impl RedHatBoyContext {
+        pub fn update(mut self, frame_count: u8) -> Self {
+            if self.frame < frame_count {
+                self.frame += 1;
+            } else {
+                self.frame = 0;
+            }
+            self
+        }
     }
 }
 
