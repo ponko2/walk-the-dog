@@ -153,6 +153,15 @@ impl From<SlidingEndState> for RedHatBoyStateMachine {
     }
 }
 
+impl From<JumpingEndState> for RedHatBoyStateMachine {
+    fn from(state: JumpingEndState) -> Self {
+        match state {
+            JumpingEndState::Jumping(jumping) => jumping.into(),
+            JumpingEndState::Landing(landing) => landing.into(),
+        }
+    }
+}
+
 mod red_hat_boy_states {
     use crate::engine::Point;
 
@@ -248,14 +257,30 @@ mod red_hat_boy_states {
     #[derive(Copy, Clone)]
     pub struct Jumping;
 
+    pub enum JumpingEndState {
+        Jumping(RedHatBoyState<Jumping>),
+        Landing(RedHatBoyState<Running>),
+    }
+
     impl RedHatBoyState<Jumping> {
         pub fn frame_name(&self) -> &str {
             JUMPING_FRAME_NAME
         }
 
-        pub fn update(mut self) -> Self {
+        pub fn update(mut self) -> JumpingEndState {
             self.update_context(JUMPING_FRAMES);
-            self
+            if self.context.position.y >= FLOOR {
+                JumpingEndState::Landing(self.land())
+            } else {
+                JumpingEndState::Jumping(self)
+            }
+        }
+
+        pub fn land(self) -> RedHatBoyState<Running> {
+            RedHatBoyState {
+                context: self.context.reset_frame(),
+                _state: Running,
+            }
         }
     }
 
@@ -306,6 +331,9 @@ mod red_hat_boy_states {
             }
             self.position.x += self.velocity.x;
             self.position.y += self.velocity.y;
+            if self.position.y > FLOOR {
+                self.position.y = FLOOR;
+            }
             self
         }
 
