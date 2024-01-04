@@ -84,6 +84,7 @@ impl RedHatBoyStateMachine {
             (RedHatBoyStateMachine::Running(state), Event::Slide) => state.slide().into(),
             (RedHatBoyStateMachine::Idle(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Running(state), Event::Update) => state.update().into(),
+            (RedHatBoyStateMachine::Sliding(state), Event::Update) => state.update().into(),
             _ => self,
         }
     }
@@ -124,6 +125,15 @@ impl From<RedHatBoyState<Running>> for RedHatBoyStateMachine {
 impl From<RedHatBoyState<Sliding>> for RedHatBoyStateMachine {
     fn from(state: RedHatBoyState<Sliding>) -> Self {
         RedHatBoyStateMachine::Sliding(state)
+    }
+}
+
+impl From<SlidingEndState> for RedHatBoyStateMachine {
+    fn from(state: SlidingEndState) -> Self {
+        match state {
+            SlidingEndState::Sliding(sliding) => sliding.into(),
+            SlidingEndState::Running(running) => running.into(),
+        }
     }
 }
 
@@ -211,14 +221,30 @@ mod red_hat_boy_states {
     #[derive(Copy, Clone)]
     pub struct Sliding;
 
+    pub enum SlidingEndState {
+        Sliding(RedHatBoyState<Sliding>),
+        Running(RedHatBoyState<Running>),
+    }
+
     impl RedHatBoyState<Sliding> {
         pub fn frame_name(&self) -> &str {
             SLIDING_FRAME_NAME
         }
 
-        pub fn update(mut self) -> Self {
+        pub fn stand(self) -> RedHatBoyState<Running> {
+            RedHatBoyState {
+                context: self.context.reset_frame(),
+                _state: Running,
+            }
+        }
+
+        pub fn update(mut self) -> SlidingEndState {
             self.update_context(SLIDING_FRAMES);
-            self
+            if self.context.frame >= SLIDING_FRAMES {
+                SlidingEndState::Running(self.stand())
+            } else {
+                SlidingEndState::Sliding(self)
+            }
         }
     }
 
