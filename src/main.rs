@@ -1,6 +1,26 @@
+use gloo_utils::format::JsValueSerdeExt;
 use rand::{thread_rng, Rng};
-use std::{rc::Rc, sync::Mutex};
+use serde::Deserialize;
+use std::{collections::HashMap, rc::Rc, sync::Mutex};
 use wasm_bindgen::{closure::Closure, JsCast, JsValue};
+
+#[derive(Deserialize)]
+struct Rect {
+    x: u16,
+    y: u16,
+    w: u16,
+    h: u16,
+}
+
+#[derive(Deserialize)]
+struct Cell {
+    frame: Rect,
+}
+
+#[derive(Deserialize)]
+struct Sheet {
+    frames: HashMap<String, Cell>,
+}
 
 pub fn main() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
@@ -50,6 +70,13 @@ pub fn main() -> Result<(), JsValue> {
             (0, 255, 0),
             5,
         );
+
+        let json = fetch_json("/static/rhb.json")
+            .await
+            .expect("Could not fetch rhb.json");
+        let sheet: Sheet = json
+            .into_serde()
+            .expect("Could not convert rhb.json into a Sheet structure");
     });
 
     Ok(())
