@@ -1,3 +1,4 @@
+use self::red_hat_boy_states::*;
 use crate::{
     browser,
     engine::{self, Game, KeyState, Point, Rect, Renderer, Sheet},
@@ -6,6 +7,41 @@ use anyhow::Result;
 use async_trait::async_trait;
 use gloo_utils::format::JsValueSerdeExt;
 use web_sys::HtmlImageElement;
+
+struct RedHatBoy {
+    state_machine: RedHatBoyStateMachine,
+    sprite_sheet: Sheet,
+    image: HtmlImageElement,
+}
+
+#[derive(Copy, Clone)]
+enum RedHatBoyStateMachine {
+    Idle(RedHatBoyState<Idle>),
+    Running(RedHatBoyState<Running>),
+}
+
+mod red_hat_boy_states {
+    use crate::engine::Point;
+
+    #[derive(Copy, Clone)]
+    pub struct RedHatBoyState<S> {
+        context: RedHatBoyContext,
+        _state: S,
+    }
+
+    #[derive(Copy, Clone)]
+    pub struct Idle;
+
+    #[derive(Copy, Clone)]
+    pub struct Running;
+
+    #[derive(Copy, Clone)]
+    pub struct RedHatBoyContext {
+        frame: u8,
+        position: Point,
+        velocity: Point,
+    }
+}
 
 pub struct WalkTheDog {
     image: Option<HtmlImageElement>,
