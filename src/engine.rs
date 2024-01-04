@@ -2,7 +2,7 @@ use crate::browser;
 use anyhow::{anyhow, Result};
 use futures::channel::oneshot::channel;
 use std::{rc::Rc, sync::Mutex};
-use wasm_bindgen::{prelude::Closure, JsCast, JsValue};
+use wasm_bindgen::{closure::Closure, JsCast, JsValue};
 use web_sys::HtmlImageElement;
 
 pub async fn load_image(source: &str) -> Result<HtmlImageElement> {
