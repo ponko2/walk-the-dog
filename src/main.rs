@@ -1,5 +1,4 @@
 use gloo_utils::format::JsValueSerdeExt;
-use rand::{thread_rng, Rng};
 use serde::Deserialize;
 use std::{collections::HashMap, rc::Rc, sync::Mutex};
 use wasm_bindgen::{closure::Closure, JsCast, JsValue};
@@ -64,13 +63,6 @@ pub fn main() -> Result<(), JsValue> {
 
         context.draw_image_with_html_image_element(&image, 0.0, 0.0);
 
-        sierpinski(
-            &context,
-            [(300.0, 0.0), (0.0, 600.0), (600.0, 600.0)],
-            (0, 255, 0),
-            5,
-        );
-
         let json = fetch_json("/static/rhb.json")
             .await
             .expect("Could not fetch rhb.json");
@@ -114,65 +106,6 @@ pub fn main() -> Result<(), JsValue> {
     });
 
     Ok(())
-}
-
-fn draw_triangle(
-    context: &web_sys::CanvasRenderingContext2d,
-    points: [(f64, f64); 3],
-    color: (u8, u8, u8),
-) {
-    let color_str = format!("rgb({}, {}, {})", color.0, color.1, color.2);
-    context.set_fill_style(&wasm_bindgen::JsValue::from_str(&color_str));
-    let [top, left, right] = points;
-    context.move_to(top.0, top.1);
-    context.begin_path();
-    context.line_to(left.0, left.1);
-    context.line_to(right.0, right.1);
-    context.line_to(top.0, top.1);
-    context.close_path();
-    context.stroke();
-    context.fill();
-}
-
-fn midpoint(point_1: (f64, f64), point_2: (f64, f64)) -> (f64, f64) {
-    ((point_1.0 + point_2.0) / 2.0, (point_1.1 + point_2.1) / 2.0)
-}
-
-fn sierpinski(
-    context: &web_sys::CanvasRenderingContext2d,
-    points: [(f64, f64); 3],
-    color: (u8, u8, u8),
-    depth: u8,
-) {
-    draw_triangle(context, points, color);
-
-    let depth = depth - 1;
-
-    if depth > 0 {
-        let mut rng = thread_rng();
-        let next_color = (
-            rng.gen_range(0..255),
-            rng.gen_range(0..255),
-            rng.gen_range(0..255),
-        );
-        let [top, left, right] = points;
-        let left_middle = midpoint(top, left);
-        let right_middle = midpoint(top, right);
-        let bottom_middle = midpoint(left, right);
-        sierpinski(context, [top, left_middle, right_middle], next_color, depth);
-        sierpinski(
-            context,
-            [left_middle, left, bottom_middle],
-            next_color,
-            depth,
-        );
-        sierpinski(
-            context,
-            [right_middle, bottom_middle, right],
-            next_color,
-            depth,
-        );
-    }
 }
 
 async fn fetch_json(json_path: &str) -> Result<JsValue, JsValue> {
