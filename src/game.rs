@@ -167,6 +167,7 @@ mod red_hat_boy_states {
     const JUMPING_FRAME_NAME: &str = "Jump";
     const SLIDING_FRAME_NAME: &str = "Slide";
     const JUMP_SPEED: i16 = -25;
+    const GRAVITY: i16 = 1;
 
     #[derive(Copy, Clone)]
     pub struct RedHatBoyState<S> {
@@ -297,6 +298,7 @@ mod red_hat_boy_states {
 
     impl RedHatBoyContext {
         pub fn update(mut self, frame_count: u8) -> Self {
+            self.velocity.y += GRAVITY;
             if self.frame < frame_count {
                 self.frame += 1;
             } else {
