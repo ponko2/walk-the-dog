@@ -2,9 +2,28 @@ use crate::browser::{self, LoopClosure};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use futures::channel::oneshot::channel;
-use std::{cell::RefCell, rc::Rc, sync::Mutex};
+use serde::Deserialize;
+use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::Mutex};
 use wasm_bindgen::{closure::Closure, JsCast, JsValue};
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
+
+#[derive(Deserialize)]
+pub struct SheetRect {
+    pub x: i16,
+    pub y: i16,
+    pub w: i16,
+    pub h: i16,
+}
+
+#[derive(Deserialize)]
+pub struct Cell {
+    pub frame: SheetRect,
+}
+
+#[derive(Deserialize)]
+pub struct Sheet {
+    pub frames: HashMap<String, Cell>,
+}
 
 pub struct Rect {
     pub x: f32,
