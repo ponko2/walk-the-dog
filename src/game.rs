@@ -31,6 +31,10 @@ impl RedHatBoy {
         self.state_machine = self.state_machine.transition(Event::Slide);
     }
 
+    fn jump(&mut self) {
+        self.state_machine = self.state_machine.transition(Event::Jump);
+    }
+
     fn update(&mut self) {
         self.state_machine = self.state_machine.update();
     }
@@ -69,10 +73,12 @@ enum RedHatBoyStateMachine {
     Idle(RedHatBoyState<Idle>),
     Running(RedHatBoyState<Running>),
     Sliding(RedHatBoyState<Sliding>),
+    Jumping(RedHatBoyState<Jumping>),
 }
 
 pub enum Event {
     Run,
+    Jump,
     Slide,
     Update,
 }
@@ -81,9 +87,11 @@ impl RedHatBoyStateMachine {
     fn transition(self, event: Event) -> Self {
         match (self, event) {
             (RedHatBoyStateMachine::Idle(state), Event::Run) => state.run().into(),
+            (RedHatBoyStateMachine::Running(state), Event::Jump) => state.jump().into(),
             (RedHatBoyStateMachine::Running(state), Event::Slide) => state.slide().into(),
             (RedHatBoyStateMachine::Idle(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Running(state), Event::Update) => state.update().into(),
+            (RedHatBoyStateMachine::Jumping(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Sliding(state), Event::Update) => state.update().into(),
             _ => self,
         }
@@ -93,6 +101,7 @@ impl RedHatBoyStateMachine {
         match self {
             RedHatBoyStateMachine::Idle(state) => state.frame_name(),
             RedHatBoyStateMachine::Running(state) => state.frame_name(),
+            RedHatBoyStateMachine::Jumping(state) => state.frame_name(),
             RedHatBoyStateMachine::Sliding(state) => state.frame_name(),
         }
     }
@@ -101,6 +110,7 @@ impl RedHatBoyStateMachine {
         match self {
             RedHatBoyStateMachine::Idle(state) => state.context(),
             RedHatBoyStateMachine::Running(state) => state.context(),
+            RedHatBoyStateMachine::Jumping(state) => state.context(),
             RedHatBoyStateMachine::Sliding(state) => state.context(),
         }
     }
@@ -128,6 +138,12 @@ impl From<RedHatBoyState<Sliding>> for RedHatBoyStateMachine {
     }
 }
 
+impl From<RedHatBoyState<Jumping>> for RedHatBoyStateMachine {
+    fn from(state: RedHatBoyState<Jumping>) -> Self {
+        RedHatBoyStateMachine::Jumping(state)
+    }
+}
+
 impl From<SlidingEndState> for RedHatBoyStateMachine {
     fn from(state: SlidingEndState) -> Self {
         match state {
@@ -144,9 +160,11 @@ mod red_hat_boy_states {
     const RUNNING_SPEED: i16 = 3;
     const IDLE_FRAMES: u8 = 29;
     const RUNNING_FRAMES: u8 = 23;
+    const JUMPING_FRAMES: u8 = 35;
     const SLIDING_FRAMES: u8 = 14;
     const IDLE_FRAME_NAME: &str = "Idle";
     const RUNNING_FRAME_NAME: &str = "Run";
+    const JUMPING_FRAME_NAME: &str = "Jump";
     const SLIDING_FRAME_NAME: &str = "Slide";
 
     #[derive(Copy, Clone)]
@@ -210,11 +228,32 @@ mod red_hat_boy_states {
             self
         }
 
+        pub fn jump(self) -> RedHatBoyState<Jumping> {
+            RedHatBoyState {
+                context: self.context.reset_frame(),
+                _state: Jumping,
+            }
+        }
+
         pub fn slide(self) -> RedHatBoyState<Sliding> {
             RedHatBoyState {
                 context: self.context.reset_frame(),
                 _state: Sliding,
             }
+        }
+    }
+
+    #[derive(Copy, Clone)]
+    pub struct Jumping;
+
+    impl RedHatBoyState<Jumping> {
+        pub fn frame_name(&self) -> &str {
+            JUMPING_FRAME_NAME
+        }
+
+        pub fn update(mut self) -> Self {
+            self.update_context(JUMPING_FRAMES);
+            self
         }
     }
 
@@ -309,6 +348,9 @@ impl Game for WalkTheDog {
         if let WalkTheDog::Loaded(rhb) = self {
             if keystate.is_pressed("ArrowRight") {
                 rhb.run_right();
+            }
+            if keystate.is_pressed("Space") {
+                rhb.jump();
             }
             if keystate.is_pressed("ArrowDown") {
                 rhb.slide();
