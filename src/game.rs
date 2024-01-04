@@ -158,7 +158,7 @@ mod red_hat_boy_states {
 
         pub fn run(self) -> RedHatBoyState<Running> {
             RedHatBoyState {
-                context: self.context,
+                context: self.context.reset_frame(),
                 _state: Running,
             }
         }
@@ -193,6 +193,11 @@ mod red_hat_boy_states {
             }
             self.position.x += self.velocity.x;
             self.position.y += self.velocity.y;
+            self
+        }
+
+        fn reset_frame(mut self) -> Self {
+            self.frame = 0;
             self
         }
     }
