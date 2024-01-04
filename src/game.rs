@@ -1,7 +1,7 @@
 use self::red_hat_boy_states::*;
 use crate::{
     browser,
-    engine::{self, Game, KeyState, Rect, Renderer, Sheet},
+    engine::{self, Game, Image, KeyState, Rect, Renderer, Sheet},
 };
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -352,6 +352,11 @@ mod red_hat_boy_states {
             self
         }
     }
+}
+
+pub struct Walk {
+    boy: RedHatBoy,
+    background: Image,
 }
 
 pub enum WalkTheDog {
