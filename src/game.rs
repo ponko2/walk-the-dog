@@ -413,6 +413,7 @@ impl Game for WalkTheDog {
         });
 
         if let WalkTheDog::Loaded(walk) = self {
+            walk.background.draw(renderer);
             walk.boy.draw(renderer);
         }
     }
