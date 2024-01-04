@@ -166,6 +166,7 @@ mod red_hat_boy_states {
     const RUNNING_FRAME_NAME: &str = "Run";
     const JUMPING_FRAME_NAME: &str = "Jump";
     const SLIDING_FRAME_NAME: &str = "Slide";
+    const JUMP_SPEED: i16 = -25;
 
     #[derive(Copy, Clone)]
     pub struct RedHatBoyState<S> {
@@ -230,7 +231,7 @@ mod red_hat_boy_states {
 
         pub fn jump(self) -> RedHatBoyState<Jumping> {
             RedHatBoyState {
-                context: self.context.reset_frame(),
+                context: self.context.reset_frame().set_vertical_velocity(JUMP_SPEED),
                 _state: Jumping,
             }
         }
@@ -308,6 +309,11 @@ mod red_hat_boy_states {
 
         fn reset_frame(mut self) -> Self {
             self.frame = 0;
+            self
+        }
+
+        fn set_vertical_velocity(mut self, y: i16) -> Self {
+            self.velocity.y = y;
             self
         }
 
