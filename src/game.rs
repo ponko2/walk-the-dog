@@ -66,9 +66,6 @@ pub enum Event {
     Run,
 }
 
-const IDLE_FRAMES: u8 = 29;
-const RUNNING_FRAMES: u8 = 23;
-
 impl RedHatBoyStateMachine {
     fn transition(self, event: Event) -> Self {
         match (self, event) {
@@ -94,11 +91,11 @@ impl RedHatBoyStateMachine {
     fn update(self) -> Self {
         match self {
             RedHatBoyStateMachine::Idle(mut state) => {
-                state.context = state.context.update(IDLE_FRAMES);
+                state.update();
                 RedHatBoyStateMachine::Idle(state)
             }
             RedHatBoyStateMachine::Running(mut state) => {
-                state.context = state.context.update(RUNNING_FRAMES);
+                state.update();
                 RedHatBoyStateMachine::Running(state)
             }
         }
@@ -115,18 +112,24 @@ mod red_hat_boy_states {
     use crate::engine::Point;
 
     const FLOOR: i16 = 475;
+    const IDLE_FRAMES: u8 = 29;
+    const RUNNING_FRAMES: u8 = 23;
     const IDLE_FRAME_NAME: &str = "Idle";
     const RUNNING_FRAME_NAME: &str = "Run";
 
     #[derive(Copy, Clone)]
     pub struct RedHatBoyState<S> {
-        pub context: RedHatBoyContext,
+        context: RedHatBoyContext,
         _state: S,
     }
 
     impl<S> RedHatBoyState<S> {
         pub fn context(&self) -> &RedHatBoyContext {
             &self.context
+        }
+
+        fn update_context(&mut self, frames: u8) {
+            self.context = self.context.update(frames);
         }
     }
 
@@ -149,6 +152,10 @@ mod red_hat_boy_states {
             IDLE_FRAME_NAME
         }
 
+        pub fn update(&mut self) {
+            self.update_context(IDLE_FRAMES);
+        }
+
         pub fn run(self) -> RedHatBoyState<Running> {
             RedHatBoyState {
                 context: self.context,
@@ -163,6 +170,10 @@ mod red_hat_boy_states {
     impl RedHatBoyState<Running> {
         pub fn frame_name(&self) -> &str {
             RUNNING_FRAME_NAME
+        }
+
+        pub fn update(&mut self) {
+            self.update_context(RUNNING_FRAMES);
         }
     }
 
