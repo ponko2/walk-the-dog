@@ -237,4 +237,8 @@ impl Image {
     pub fn new(element: HtmlImageElement, position: Point) -> Self {
         Self { element, position }
     }
+
+    pub fn draw(&self, renderer: &Renderer) {
+        renderer.draw_entire_image(&self.element, &self.position)
+    }
 }
