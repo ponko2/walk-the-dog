@@ -373,6 +373,7 @@ impl Game for WalkTheDog {
                 let sheet = browser::fetch_json("/static/rhb.json")
                     .await?
                     .into_serde()?;
+                let background = engine::load_image("/static/BG.png").await?;
                 let rhb = RedHatBoy::new(sheet, engine::load_image("/static/rhb.png").await?);
                 Ok(Box::new(WalkTheDog::Loaded(rhb)))
             }
