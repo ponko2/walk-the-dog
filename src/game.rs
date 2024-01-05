@@ -357,6 +357,7 @@ mod red_hat_boy_states {
 pub struct Walk {
     boy: RedHatBoy,
     background: Image,
+    stone: Image,
 }
 
 pub enum WalkTheDog {
@@ -379,10 +380,12 @@ impl Game for WalkTheDog {
                     .await?
                     .into_serde()?;
                 let background = engine::load_image("/static/BG.png").await?;
+                let stone = engine::load_image("/static/Stone.png").await?;
                 let rhb = RedHatBoy::new(sheet, engine::load_image("/static/rhb.png").await?);
                 Ok(Box::new(WalkTheDog::Loaded(Walk {
                     boy: rhb,
                     background: Image::new(background, Point { x: 0, y: 0 }),
+                    stone: Image::new(stone, Point { x: 150, y: 546 }),
                 })))
             }
             WalkTheDog::Loaded(_) => Err(anyhow!("Error: Game is already initialized!")),
@@ -415,6 +418,7 @@ impl Game for WalkTheDog {
         if let WalkTheDog::Loaded(walk) = self {
             walk.background.draw(renderer);
             walk.boy.draw(renderer);
+            walk.stone.draw(renderer);
         }
     }
 }
