@@ -59,15 +59,15 @@ impl RedHatBoy {
                 height: sprite.frame.h.into(),
             },
             &Rect {
-                x: self.state_machine.context().position.x.into(),
-                y: self.state_machine.context().position.y.into(),
+                x: (self.state_machine.context().position.x + sprite.sprite_source_size.x).into(),
+                y: (self.state_machine.context().position.y + sprite.sprite_source_size.y).into(),
                 width: sprite.frame.w.into(),
                 height: sprite.frame.h.into(),
             },
         );
         renderer.draw_rect(&Rect {
-            x: self.state_machine.context().position.x.into(),
-            y: self.state_machine.context().position.y.into(),
+            x: (self.state_machine.context().position.x + sprite.sprite_source_size.x).into(),
+            y: (self.state_machine.context().position.y + sprite.sprite_source_size.y).into(),
             width: sprite.frame.w.into(),
             height: sprite.frame.h.into(),
         });
@@ -171,8 +171,9 @@ impl From<JumpingEndState> for RedHatBoyStateMachine {
 mod red_hat_boy_states {
     use crate::engine::Point;
 
-    const FLOOR: i16 = 475;
+    const FLOOR: i16 = 479;
     const RUNNING_SPEED: i16 = 3;
+    const STARTING_POINT: i16 = -20;
     const IDLE_FRAMES: u8 = 29;
     const RUNNING_FRAMES: u8 = 23;
     const JUMPING_FRAMES: u8 = 35;
@@ -208,7 +209,10 @@ mod red_hat_boy_states {
             RedHatBoyState {
                 context: RedHatBoyContext {
                     frame: 0,
-                    position: Point { x: 0, y: FLOOR },
+                    position: Point {
+                        x: STARTING_POINT,
+                        y: FLOOR,
+                    },
                     velocity: Point { x: 0, y: 0 },
                 },
                 _state: Idle,
