@@ -83,17 +83,12 @@ impl Renderer {
     }
 
     pub fn draw_entire_image(&self, image: &HtmlImageElement, position: &Point) {
-        self.draw_rect(&Rect {
-            x: position.x.into(),
-            y: position.y.into(),
-            width: image.width() as f32,
-            height: image.height() as f32,
-        });
         self.context
             .draw_image_with_html_image_element(image, position.x.into(), position.y.into())
             .expect("Drawing is throwing exceptions! Unrecoverable error.");
     }
 
+    #[allow(dead_code)]
     pub fn draw_rect(&self, bounding_box: &Rect) {
         self.context.set_stroke_style(&JsValue::from_str("#FF0000"));
         self.context.begin_path();
