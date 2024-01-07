@@ -37,10 +37,10 @@ pub struct Point {
 }
 
 pub struct Rect {
-    pub x: f32,
-    pub y: f32,
-    pub width: f32,
-    pub height: f32,
+    pub x: i16,
+    pub y: i16,
+    pub width: i16,
+    pub height: i16,
 }
 
 impl Rect {
@@ -261,10 +261,10 @@ pub struct Image {
 impl Image {
     pub fn new(element: HtmlImageElement, position: Point) -> Self {
         let bounding_box = Rect {
-            x: position.x.into(),
-            y: position.y.into(),
-            width: element.width() as f32,
-            height: element.height() as f32,
+            x: position.x,
+            y: position.y,
+            width: element.width() as i16,
+            height: element.height() as i16,
         };
         Self {
             element,
@@ -282,16 +282,16 @@ impl Image {
     }
 
     pub fn move_horizontally(&mut self, distance: i16) {
-        self.bounding_box.x += distance as f32;
+        self.bounding_box.x += distance;
         self.position.x += distance;
     }
 
     pub fn set_x(&mut self, x: i16) {
-        self.bounding_box.x = x as f32;
+        self.bounding_box.x = x;
         self.position.x = x;
     }
 
     pub fn right(&self) -> i16 {
-        (self.bounding_box.x + self.bounding_box.width) as i16
+        self.bounding_box.x + self.bounding_box.width
     }
 }
