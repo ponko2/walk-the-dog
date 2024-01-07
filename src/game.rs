@@ -813,6 +813,7 @@ struct Walking;
 
 impl WalkTheDogState<Walking> {
     fn end_game(self) -> WalkTheDogState<GameOver> {
+        browser::draw_ui(r#"<button type="button">New Game</button>"#);
         WalkTheDogState {
             _state: GameOver,
             walk: self.walk,
