@@ -11,7 +11,7 @@ use futures::channel::{
 use serde::Deserialize;
 use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::Mutex};
 use wasm_bindgen::{closure::Closure, JsCast, JsValue};
-use web_sys::{AudioBuffer, AudioContext, CanvasRenderingContext2d, HtmlImageElement};
+use web_sys::{AudioBuffer, AudioContext, CanvasRenderingContext2d, HtmlElement, HtmlImageElement};
 
 #[derive(Deserialize, Clone)]
 pub struct SheetRect {
@@ -285,6 +285,18 @@ fn prepare_input() -> Result<UnboundedReceiver<KeyPress>> {
     onkeydown.forget();
     onkeyup.forget();
     Ok(keyevent_receiver)
+}
+
+pub fn add_click_handler(elem: HtmlElement) -> UnboundedReceiver<()> {
+    let (mut click_sender, click_receiver) = unbounded();
+    let on_click = browser::closure_wrap(Box::new(move || {
+        if let Err(err) = click_sender.start_send(()) {
+            error!("Could not send click message {:#?}", err);
+        }
+    }) as Box<dyn FnMut()>);
+    elem.set_onclick(Some(on_click.as_ref().unchecked_ref()));
+    on_click.forget();
+    click_receiver
 }
 
 pub struct Image {
