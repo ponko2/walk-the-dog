@@ -134,6 +134,15 @@ impl RedHatBoy {
         }
     }
 
+    fn reset(boy: Self) -> Self {
+        RedHatBoy::new(
+            boy.sprite_sheet,
+            boy.image,
+            boy.state_machine.context().audio.clone(),
+            boy.state_machine.context().jump_sound.clone(),
+        )
+    }
+
     fn run_right(&mut self) {
         self.state_machine = self.state_machine.clone().transition(Event::Run);
     }
@@ -609,8 +618,8 @@ mod red_hat_boy_states {
         pub frame: u8,
         pub position: Point,
         pub velocity: Point,
-        audio: Audio,
-        jump_sound: Sound,
+        pub audio: Audio,
+        pub jump_sound: Sound,
     }
 
     impl RedHatBoyContext {
@@ -678,6 +687,20 @@ pub struct Walk {
 impl Walk {
     fn knocked_out(&self) -> bool {
         self.boy.knocked_out()
+    }
+
+    fn reset(walk: Self) -> Self {
+        let starting_obstacles =
+            stone_and_platform(walk.stone.clone(), walk.obstacle_sheet.clone(), 0);
+        let timeline = rightmost(&starting_obstacles);
+        Walk {
+            boy: RedHatBoy::reset(walk.boy),
+            backgrounds: walk.backgrounds,
+            obstacles: starting_obstacles,
+            obstacle_sheet: walk.obstacle_sheet,
+            stone: walk.stone,
+            timeline,
+        }
     }
 
     fn draw(&self, renderer: &Renderer) {
@@ -892,6 +915,16 @@ impl WalkTheDogState<GameOver> {
             GameOverEndState::Complete(self.new_game())
         } else {
             GameOverEndState::Continue(self)
+        }
+    }
+
+    fn new_game(self) -> WalkTheDogState<Ready> {
+        if let Err(err) = browser::hide_ui() {
+            error!("Error hiding the browser {:#?}", err);
+        }
+        WalkTheDogState {
+            _state: Ready,
+            walk: Walk::reset(self.walk),
         }
     }
 }
