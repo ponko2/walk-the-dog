@@ -21,6 +21,10 @@ wasm-bindgen-futures = "0.4.39"
 version = "0.3.66"
 features = [
   "console",
+  "AudioBuffer",
+  "AudioBufferSourceNode",
+  "AudioContext",
+  "AudioDestinationNode",
   "CanvasRenderingContext2d",
   "Document",
   "Element",
