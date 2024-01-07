@@ -157,6 +157,10 @@ impl RedHatBoy {
         self.state_machine = self.state_machine.clone().update();
     }
 
+    fn knocked_out(&self) -> bool {
+        self.state_machine.knocked_out()
+    }
+
     fn pos_y(&self) -> i16 {
         self.state_machine.context().position.y
     }
@@ -284,6 +288,10 @@ impl RedHatBoyStateMachine {
             RedHatBoyStateMachine::Falling(state) => state.context(),
             RedHatBoyStateMachine::KnockedOut(state) => state.context(),
         }
+    }
+
+    fn knocked_out(&self) -> bool {
+        matches!(self, RedHatBoyStateMachine::KnockedOut(_))
     }
 
     fn update(self) -> Self {
@@ -667,6 +675,10 @@ pub struct Walk {
 }
 
 impl Walk {
+    fn knocked_out(&self) -> bool {
+        self.boy.knocked_out()
+    }
+
     fn draw(&self, renderer: &Renderer) {
         self.backgrounds.iter().for_each(|background| {
             background.draw(renderer);
@@ -800,7 +812,14 @@ impl From<ReadyEndState> for WalkTheDogStateMachine {
 struct Walking;
 
 impl WalkTheDogState<Walking> {
-    fn update(mut self, keystate: &KeyState) -> WalkTheDogState<Walking> {
+    fn end_game(self) -> WalkTheDogState<GameOver> {
+        WalkTheDogState {
+            _state: GameOver,
+            walk: self.walk,
+        }
+    }
+
+    fn update(mut self, keystate: &KeyState) -> WalkingEndState {
         if keystate.is_pressed("Space") {
             self.walk.boy.jump();
         }
@@ -828,7 +847,25 @@ impl WalkTheDogState<Walking> {
         } else {
             self.walk.timeline += walking_speed;
         }
-        self
+        if self.walk.knocked_out() {
+            WalkingEndState::Complete(self.end_game())
+        } else {
+            WalkingEndState::Continue(self)
+        }
+    }
+}
+
+enum WalkingEndState {
+    Continue(WalkTheDogState<Walking>),
+    Complete(WalkTheDogState<GameOver>),
+}
+
+impl From<WalkingEndState> for WalkTheDogStateMachine {
+    fn from(state: WalkingEndState) -> Self {
+        match state {
+            WalkingEndState::Continue(walking) => walking.into(),
+            WalkingEndState::Complete(game_over) => game_over.into(),
+        }
     }
 }
 
