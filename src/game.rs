@@ -2,6 +2,7 @@ use self::red_hat_boy_states::*;
 use crate::{
     browser,
     engine::{self, Cell, Game, Image, KeyState, Point, Rect, Renderer, Sheet, SpriteSheet},
+    segments::*,
 };
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -18,7 +19,7 @@ pub trait Obstacle {
     fn right(&self) -> i16;
 }
 
-struct Platform {
+pub struct Platform {
     sheet: Rc<SpriteSheet>,
     sprites: Vec<Cell>,
     bounding_boxes: Vec<Rect>,
@@ -26,7 +27,7 @@ struct Platform {
 }
 
 impl Platform {
-    fn new(
+    pub fn new(
         sheet: Rc<SpriteSheet>,
         position: Point,
         sprite_names: &[&str],
@@ -690,9 +691,6 @@ impl Obstacle for Barrier {
     }
 }
 
-const LOW_PLATFORM: i16 = 420;
-const HIGH_PLATFORM: i16 = 375;
-const FIRST_PLATFORM: i16 = 370;
 #[async_trait(?Send)]
 impl Game for WalkTheDog {
     async fn initialize(&self) -> Result<Box<dyn Game>> {
@@ -708,19 +706,6 @@ impl Game for WalkTheDog {
                     tiles.into_serde()?,
                     engine::load_image("/static/tiles.png").await?,
                 ));
-                let platform = Platform::new(
-                    sprite_sheet.clone(),
-                    Point {
-                        x: FIRST_PLATFORM,
-                        y: LOW_PLATFORM,
-                    },
-                    &["13.png", "14.png", "15.png"],
-                    &[
-                        Rect::new_from_x_y(0, 0, 60, 54),
-                        Rect::new_from_x_y(60, 0, 384 - (60 * 2), 93),
-                        Rect::new_from_x_y(384 - 60, 0, 60, 54),
-                    ],
-                );
                 let rhb = RedHatBoy::new(sheet, engine::load_image("/static/rhb.png").await?);
                 let background_width = background.width() as i16;
                 Ok(Box::new(WalkTheDog::Loaded(Walk {
@@ -735,10 +720,7 @@ impl Game for WalkTheDog {
                             },
                         ),
                     ],
-                    obstacles: vec![
-                        Box::new(Barrier::new(Image::new(stone, Point { x: 150, y: 546 }))),
-                        Box::new(platform),
-                    ],
+                    obstacles: stone_and_platform(stone, sprite_sheet.clone(), 0),
                     obstacle_sheet: sprite_sheet,
                 })))
             }
