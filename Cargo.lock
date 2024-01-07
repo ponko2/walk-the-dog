@@ -340,6 +340,7 @@ dependencies = [
  "futures",
  "getrandom",
  "gloo-utils",
+ "js-sys",
  "rand",
  "serde",
  "wasm-bindgen",
