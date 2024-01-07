@@ -6,6 +6,7 @@ use crate::{
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use gloo_utils::format::JsValueSerdeExt;
+use std::rc::Rc;
 use web_sys::HtmlImageElement;
 
 const HEIGHT: i16 = 600;
@@ -18,12 +19,12 @@ pub trait Obstacle {
 }
 
 struct Platform {
-    sheet: SpriteSheet,
+    sheet: Rc<SpriteSheet>,
     position: Point,
 }
 
 impl Platform {
-    fn new(sheet: SpriteSheet, position: Point) -> Self {
+    fn new(sheet: Rc<SpriteSheet>, position: Point) -> Self {
         Platform { sheet, position }
     }
 
@@ -624,6 +625,7 @@ mod red_hat_boy_states {
 }
 
 pub struct Walk {
+    obstacle_sheet: Rc<SpriteSheet>,
     boy: RedHatBoy,
     backgrounds: [Image; 2],
     obstacles: Vec<Box<dyn Obstacle>>,
@@ -689,12 +691,13 @@ impl Game for WalkTheDog {
                     .into_serde()?;
                 let background = engine::load_image("/static/BG.png").await?;
                 let stone = engine::load_image("/static/Stone.png").await?;
-                let platform_sheet = browser::fetch_json("/static/tiles.json").await?;
+                let tiles = browser::fetch_json("/static/tiles.json").await?;
+                let sprite_sheet = Rc::new(SpriteSheet::new(
+                    tiles.into_serde()?,
+                    engine::load_image("/static/tiles.png").await?,
+                ));
                 let platform = Platform::new(
-                    SpriteSheet::new(
-                        platform_sheet.into_serde()?,
-                        engine::load_image("/static/tiles.png").await?,
-                    ),
+                    sprite_sheet.clone(),
                     Point {
                         x: FIRST_PLATFORM,
                         y: LOW_PLATFORM,
@@ -718,6 +721,7 @@ impl Game for WalkTheDog {
                         Box::new(Barrier::new(Image::new(stone, Point { x: 150, y: 546 }))),
                         Box::new(platform),
                     ],
+                    obstacle_sheet: sprite_sheet,
                 })))
             }
             WalkTheDog::Loaded(_) => Err(anyhow!("Error: Game is already initialized!")),
