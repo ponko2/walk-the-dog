@@ -8,6 +8,7 @@ use crate::{
 };
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
+use futures::channel::mpsc::UnboundedReceiver;
 use gloo_utils::format::JsValueSerdeExt;
 use rand::{thread_rng, Rng};
 use std::rc::Rc;
@@ -813,9 +814,14 @@ struct Walking;
 
 impl WalkTheDogState<Walking> {
     fn end_game(self) -> WalkTheDogState<GameOver> {
-        browser::draw_ui(r#"<button type="button">New Game</button>"#);
+        let receiver = browser::draw_ui(r#"<button id="new_game" type="button">New Game</button>"#)
+            .and_then(|_unit| browser::find_html_element_by_id("new_game"))
+            .map(engine::add_click_handler)
+            .unwrap();
         WalkTheDogState {
-            _state: GameOver,
+            _state: GameOver {
+                new_game_event: receiver,
+            },
             walk: self.walk,
         }
     }
@@ -870,11 +876,37 @@ impl From<WalkingEndState> for WalkTheDogStateMachine {
     }
 }
 
-struct GameOver;
+struct GameOver {
+    new_game_event: UnboundedReceiver<()>,
+}
+
+impl GameOver {
+    fn new_game_pressed(&mut self) -> bool {
+        matches!(self.new_game_event.try_next(), Ok(Some(())))
+    }
+}
 
 impl WalkTheDogState<GameOver> {
-    fn update(self) -> WalkTheDogState<GameOver> {
-        self
+    fn update(mut self) -> GameOverEndState {
+        if self._state.new_game_pressed() {
+            GameOverEndState::Complete(self.new_game())
+        } else {
+            GameOverEndState::Continue(self)
+        }
+    }
+}
+
+enum GameOverEndState {
+    Continue(WalkTheDogState<GameOver>),
+    Complete(WalkTheDogState<Ready>),
+}
+
+impl From<GameOverEndState> for WalkTheDogStateMachine {
+    fn from(state: GameOverEndState) -> Self {
+        match state {
+            GameOverEndState::Continue(game_over) => game_over.into(),
+            GameOverEndState::Complete(ready) => ready.into(),
+        }
     }
 }
 
