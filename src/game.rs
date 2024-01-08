@@ -1,13 +1,6 @@
-#[cfg(test)]
-mod test_browser;
-#[cfg(test)]
-use test_browser as browser;
-
-#[cfg(not(test))]
-use crate::browser;
-
 use self::red_hat_boy_states::*;
 use crate::{
+    browser,
     engine::{
         self, Audio, Cell, Game, Image, KeyState, Point, Rect, Renderer, Sheet, Sound, SpriteSheet,
     },
@@ -1080,9 +1073,12 @@ mod tests {
     use super::*;
     use futures::channel::mpsc::unbounded;
     use std::collections::HashMap;
+    use wasm_bindgen_test::wasm_bindgen_test;
     use web_sys::{AudioBuffer, AudioBufferOptions};
 
-    #[test]
+    wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
+
+    #[wasm_bindgen_test]
     fn test_transition_from_game_over_to_new_game() {
         let (_, receiver) = unbounded();
         let image = HtmlImageElement::new().unwrap();
@@ -1116,11 +1112,21 @@ mod tests {
             stone: image.clone(),
             timeline: 0,
         };
+        let document = browser::document().unwrap();
+        document
+            .body()
+            .unwrap()
+            .insert_adjacent_html("afterbegin", r#"<div id="ui"></div>"#)
+            .unwrap();
+        browser::draw_ui("<p>This is the UI</p>").unwrap();
         let state = WalkTheDogState {
             _state: GameOver {
                 new_game_event: receiver,
             },
             walk,
         };
+        state.new_game();
+        let ui = browser::find_html_element_by_id("ui").unwrap();
+        assert_eq!(ui.child_element_count(), 0);
     }
 }
