@@ -23,6 +23,7 @@ version = "0.3.66"
 features = [
   "console",
   "AudioBuffer",
+  "AudioBufferOptions",
   "AudioBufferSourceNode",
   "AudioContext",
   "AudioDestinationNode",
