@@ -217,6 +217,7 @@ impl GameLoop {
     }
 }
 
+#[derive(Debug)]
 pub struct KeyState {
     pressed_keys: HashMap<String, web_sys::KeyboardEvent>,
 }
